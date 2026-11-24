@@ -1,0 +1,8 @@
+#!/bin/sh
+
+bunx biome check --staged --write --no-errors-on-unmatched || {
+  echo "Fix the lint errors above and commit again"
+  exit 1
+}
+
+git update-index --again
