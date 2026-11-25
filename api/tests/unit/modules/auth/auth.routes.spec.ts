@@ -1,15 +1,7 @@
-import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from 'bun:test'
+import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 
 import { buildApp } from '../../../../src/app'
-import { authRepository } from '../../../../src/modules/auth/auth.repository'
-
-type Session = {
-  id: string
-  refreshTokenHash: string
-  expiresAt: Date
-  revokedAt: Date | null
-  userAgent: string | null
-}
+import { type Session, useInMemoryRepositories } from '../../support/memory-repositories'
 
 const credentials = { email: 'admin@example.com', password: 'admin-password' }
 
@@ -19,27 +11,7 @@ describe('auth routes', () => {
   let app: ReturnType<typeof buildApp>
 
   beforeEach(async () => {
-    sessions = []
-
-    spyOn(authRepository, 'createSession').mockImplementation(async (data) => {
-      sessions.push({ revokedAt: null, userAgent: null, ...data })
-    })
-
-    spyOn(authRepository, 'findSessionById').mockImplementation(
-      async (id) => sessions.find((session) => session.id === id) as never,
-    )
-
-    spyOn(authRepository, 'rotateSessionToken').mockImplementation(async (id, hash, expiresAt) => {
-      const session = sessions.find((item) => item.id === id && !item.revokedAt)
-
-      if (session) Object.assign(session, { refreshTokenHash: hash, expiresAt })
-    })
-
-    spyOn(authRepository, 'revokeSession').mockImplementation(async (id) => {
-      const session = sessions.find((item) => item.id === id && !item.revokedAt)
-
-      if (session) session.revokedAt = new Date()
-    })
+    sessions = useInMemoryRepositories().sessions
 
     app = buildApp()
 
