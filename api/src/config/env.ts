@@ -13,7 +13,9 @@ const envSchema = z.object({
     .transform((value) => value.split(',').map((origin) => origin.trim()))
     .pipe(z.array(z.url())),
   ADMIN_EMAIL: z.string().trim().toLowerCase().pipe(z.email()),
-  ADMIN_PASSWORD_HASH: z.string().min(1),
+  ADMIN_PASSWORD_HASH: z
+    .string()
+    .regex(/^\$2[aby]\$\d{2}\$.{53}$/, 'Must be a bcrypt hash. Run: bun run hash-password'),
 })
 
 const parsed = envSchema.safeParse(process.env)
