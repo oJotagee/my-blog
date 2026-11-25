@@ -27,6 +27,8 @@ export function buildApp() {
         }
       : env.NODE_ENV === 'production',
     logController: new RequestLogController(),
+    trustProxy:
+      env.NODE_ENV === 'production' ? (_address: string, hop: number) => hop === 0 : false,
   })
 
   registerZod(app)
