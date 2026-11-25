@@ -3,6 +3,7 @@ import Fastify from 'fastify'
 import { env } from './config/env'
 import { authRoutes } from './modules/auth/auth.routes'
 import { healthRoutes } from './modules/health/health.routes'
+import { adminTagsRoutes, tagsRoutes } from './modules/tags/tags.routes'
 import { authPlugin } from './plugins/auth'
 import { registerErrorHandler } from './plugins/error-handler'
 import { RequestLogController } from './plugins/logger'
@@ -43,6 +44,8 @@ export function buildApp() {
 
   app.register(healthRoutes, { prefix: '/health' })
   app.register(authRoutes, { prefix: '/auth' })
+  app.register(tagsRoutes, { prefix: '/tags' })
+  app.register(adminTagsRoutes, { prefix: '/admin' })
 
   return app
 }
