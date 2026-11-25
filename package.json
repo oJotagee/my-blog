@@ -12,6 +12,7 @@
     "prepare": "git config core.hooksPath .githooks || true",
     "dev": "bun run --filter '*' dev",
     "dev:api": "bun run --filter '@blog/api' dev",
+    "hash-password": "bun run --filter '@blog/api' hash-password",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format --write .",

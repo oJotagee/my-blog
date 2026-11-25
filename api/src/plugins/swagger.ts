@@ -12,9 +12,33 @@ export function registerSwagger(app: FastifyInstance) {
         description: 'API for the blog application',
         version: '1.0.0',
       },
+      components: {
+        securitySchemes: {
+          bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+        },
+      },
     },
     transform: jsonSchemaTransform,
   })
 
-  app.register(scalarApiReference, { routePrefix: '/docs' })
+  app.register(scalarApiReference, {
+    routePrefix: '/docs',
+    hooks: {
+      preHandler: (_request, reply, done) => {
+        reply.header(
+          'content-security-policy',
+          [
+            "default-src 'self'",
+            "script-src 'self' 'unsafe-inline'",
+            "style-src 'self' 'unsafe-inline' https:",
+            "font-src 'self' data: https:",
+            "img-src 'self' data: https:",
+            "connect-src 'self'",
+          ].join('; '),
+        )
+
+        done()
+      },
+    },
+  })
 }

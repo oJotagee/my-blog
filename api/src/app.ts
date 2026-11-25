@@ -1,9 +1,12 @@
 import Fastify from 'fastify'
 
 import { env } from './config/env'
+import { authRoutes } from './modules/auth/auth.routes'
 import { healthRoutes } from './modules/health/health.routes'
+import { authPlugin } from './plugins/auth'
 import { registerErrorHandler } from './plugins/error-handler'
 import { RequestLogController } from './plugins/logger'
+import { registerSecurity } from './plugins/security'
 import { registerSwagger } from './plugins/swagger'
 import { registerZod } from './plugins/zod'
 
@@ -30,9 +33,14 @@ export function buildApp() {
 
   registerErrorHandler(app)
 
+  registerSecurity(app)
+
   registerSwagger(app)
 
+  app.register(authPlugin)
+
   app.register(healthRoutes, { prefix: '/health' })
+  app.register(authRoutes, { prefix: '/auth' })
 
   return app
 }
