@@ -12,3 +12,5 @@ process.env.ADMIN_PASSWORD_HASH = await Bun.password.hash('admin-password', {
   algorithm: 'bcrypt',
   cost: 4,
 })
+
+process.env.CDN_URL = 'https://cdn.example.com'

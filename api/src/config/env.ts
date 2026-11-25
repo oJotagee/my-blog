@@ -12,6 +12,10 @@ const envSchema = z.object({
     .default('http://localhost:3000')
     .transform((value) => value.split(',').map((origin) => origin.trim()))
     .pipe(z.array(z.url())),
+  CDN_URL: z
+    .url({ protocol: /^https?$/ })
+    .transform((value) => value.replace(/\/+$/, ''))
+    .optional(),
   ADMIN_EMAIL: z.string().trim().toLowerCase().pipe(z.email()),
   ADMIN_PASSWORD_HASH: z
     .string()

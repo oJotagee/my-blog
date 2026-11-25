@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, mock } from 'bun:test'
 import { randomUUID } from 'node:crypto'
 
 import { createTestApp, signIn } from '../../support/app'
+import { buildPost } from '../../support/builders'
 import { useInMemoryRepositories } from '../../support/memory-repositories'
 
 describe('tags routes', () => {
@@ -33,16 +34,15 @@ describe('tags routes', () => {
     tagId: string,
     post: { status?: 'draft' | 'published'; from?: string; to?: string },
   ) {
-    const id = randomUUID()
-
-    store.posts.push({
-      id,
+    const row = buildPost({
       status: post.status ?? 'published',
       studiedFrom: post.from ?? null,
       studiedTo: post.to ?? null,
     })
 
-    store.postTags.push({ postId: id, tagId })
+    store.posts.push(row)
+
+    store.postTags.push({ postId: row.id, tagId })
   }
 
   it('GET /tags is public and lists only tags used by published posts', async () => {
