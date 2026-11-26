@@ -7,16 +7,17 @@ Blog pessoal para me forçar a estudar. Cada coisa que eu estudo ou leio vira um
 - Publicar artigos e posts sobre o que estudei ou li, com texto e imagens em blocos (por exemplo, texto, imagem, texto, imagem, ou imagem e texto lado a lado), separados em seções.
 - Organizar o conhecimento por tags (CRUD), com a data em que estudei cada assunto, para listar o que levar ao LinkedIn e ao currículo.
 - Ter um painel só meu, com login único: posts publicados, analytics de visitas e um dashboard geral.
-- Customizar a tela inicial do blog (pendente, depende do design do front).
+- Customizar a tela inicial do blog (textos, rodapé e post em destaque), guardada na API.
 
 ## Estado atual
 
-| Parte                | Situação                                                                                              |
-| -------------------- | ----------------------------------------------------------------------------------------------------- |
-| API: base            | pronta: Fastify, Zod, Swagger com Scalar, rota `/health`                                              |
-| API: schema do banco | pronto em `api/src/db/schema.ts`: posts, seções, blocos, mídia, tags, visitas por dia e configurações |
-| API: módulos         | a fazer: auth, posts, tags, mídia, analytics                                                          |
-| Front                | a fazer: depende do design                                                                            |
+| Parte        | Situação                                                                            |
+| ------------ | ----------------------------------------------------------------------------------- |
+| API: base    | pronta: Fastify, Zod, Swagger com Scalar, segurança, logs e `/health`               |
+| API: banco   | schema e migrations prontos em `api/src/db/schema.ts`                               |
+| API: módulos | prontos: auth, tags, posts, site, mídia (S3 + CloudFront) e analytics               |
+| API: testes  | unitários com repositórios em memória; nenhuma query rodou contra o Neon real ainda |
+| Front        | a fazer, só depois da API testada de ponta a ponta (`apps/web`)                     |
 
 ## Estrutura
 
@@ -31,7 +32,7 @@ Monorepo com [Bun](https://bun.com) workspaces:
 
 - Bun 1.4.2 ou mais novo
 - Um banco Postgres no [Neon](https://neon.com)
-- Para o upload de imagens (módulo de mídia, ainda não feito): bucket S3 e distribuição CloudFront
+- Para o upload de imagens: bucket S3 e distribuição CloudFront (sem eles, só as rotas de mídia ficam indisponíveis)
 
 ## Como rodar
 
@@ -41,17 +42,13 @@ Monorepo com [Bun](https://bun.com) workspaces:
    bun install
    ```
 
-2. Crie o arquivo de ambiente e preencha a `DATABASE_URL`:
+2. Crie o arquivo de ambiente e preencha `DATABASE_URL`, `JWT_SECRET`, `ADMIN_EMAIL` e `ADMIN_PASSWORD_HASH` (veja a seção de login da [API](api/README.md)):
 
    ```bash
    cp api/.env.example api/.env
    ```
 
-3. Gere e aplique as migrations:
-
-   ```bash
-   bun run db:generate
-   ```
+3. Aplique as migrations:
 
    ```bash
    bun run db:migrate
