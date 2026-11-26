@@ -14,3 +14,7 @@ process.env.ADMIN_PASSWORD_HASH = await Bun.password.hash('admin-password', {
 })
 
 process.env.CDN_URL = 'https://cdn.example.com'
+
+process.env.AWS_REGION = 'us-east-1'
+
+process.env.S3_BUCKET = 'test-bucket'

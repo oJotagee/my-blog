@@ -12,6 +12,13 @@ const envSchema = z.object({
     .default('http://localhost:3000')
     .transform((value) => value.split(',').map((origin) => origin.trim()))
     .pipe(z.array(z.url())),
+  AWS_REGION: z.string().min(1).optional(),
+  S3_BUCKET: z.string().min(1).optional(),
+  MEDIA_MAX_BYTES: z.coerce
+    .number()
+    .int()
+    .positive()
+    .default(5 * 1024 * 1024),
   CDN_URL: z
     .url({ protocol: /^https?$/ })
     .transform((value) => value.replace(/\/+$/, ''))
