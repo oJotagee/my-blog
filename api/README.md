@@ -55,7 +55,7 @@ O front (Next.js) guarda os tokens no servidor, como no Lynko.
 
 ## Rotas
 
-Rotas de `/admin` e `/auth/logout` exigem `Authorization: Bearer <token>`.
+Só as rotas de `/admin` exigem `Authorization: Bearer <token>`. As outras são públicas; `/auth/refresh` e `/auth/logout` agem sobre o cookie do refresh token.
 
 | Método             | Caminho                      | Faz                                                                  |
 | ------------------ | ---------------------------- | -------------------------------------------------------------------- |
