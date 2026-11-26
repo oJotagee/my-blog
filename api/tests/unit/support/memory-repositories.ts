@@ -9,6 +9,7 @@ import {
   type PostRow,
   postsRepository,
 } from '../../../src/modules/posts/posts.repository'
+import { siteRepository } from '../../../src/modules/site/site.repository'
 import { tagsRepository } from '../../../src/modules/tags/tags.repository'
 import { buildPost } from './builders'
 
@@ -75,6 +76,7 @@ export function useInMemoryRepositories() {
     blocks: [] as Block[],
     references: [] as Reference[],
     media: [] as Media[],
+    site: undefined as Record<string, unknown> | undefined,
   }
 
   spyOn(authRepository, 'createSession').mockImplementation(async (data) => {
@@ -289,6 +291,18 @@ export function useInMemoryRepositories() {
         .length,
       total: published.length,
     }
+  })
+
+  spyOn(postsRepository, 'findPublishedItemById').mockImplementation(async (id) => {
+    const post = store.posts.find((item) => item.id === id && item.status === 'published')
+
+    return post && withTags(post)
+  })
+
+  spyOn(siteRepository, 'get').mockImplementation(async () => store.site)
+
+  spyOn(siteRepository, 'save').mockImplementation(async (home) => {
+    store.site = home
   })
 
   spyOn(postsRepository, 'findRowById').mockImplementation(async (id) =>

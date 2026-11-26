@@ -292,6 +292,17 @@ export const postsRepository = {
     return post ? loadDetail(post) : undefined
   },
 
+  async findPublishedItemById(id: string) {
+    const { items } = await pageOf(
+      and(eq(postSchema.id, id), eq(postSchema.status, 'published')),
+      [desc(postSchema.publishedAt)],
+      1,
+      0,
+    )
+
+    return items[0]
+  },
+
   async findRowById(id: string) {
     const [post] = await db.select().from(postSchema).where(eq(postSchema.id, id)).limit(1)
 
