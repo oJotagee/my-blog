@@ -21,6 +21,8 @@ export function registerSecurity(app: FastifyInstance) {
   })
 }
 
+export const viewRateLimit = { max: 30, timeWindow: '1 minute' }
+
 export const authRateLimit = {
   login: { max: 5, timeWindow: '1 minute' },
   refresh: { max: 30, timeWindow: '1 minute' },

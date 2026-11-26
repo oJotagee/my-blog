@@ -1,6 +1,7 @@
 import Fastify from 'fastify'
 
 import { env } from './config/env'
+import { adminAnalyticsRoutes, analyticsRoutes } from './modules/analytics/analytics.routes'
 import { authRoutes } from './modules/auth/auth.routes'
 import { healthRoutes } from './modules/health/health.routes'
 import { adminMediaRoutes } from './modules/media/media.routes'
@@ -51,6 +52,8 @@ export function buildApp() {
   app.register(adminTagsRoutes, { prefix: '/admin' })
   app.register(postsRoutes, { prefix: '/posts' })
   app.register(adminPostsRoutes, { prefix: '/admin' })
+  app.register(analyticsRoutes, { prefix: '/analytics' })
+  app.register(adminAnalyticsRoutes, { prefix: '/admin' })
   app.register(adminMediaRoutes, { prefix: '/admin' })
   app.register(siteRoutes, { prefix: '/site' })
   app.register(adminSiteRoutes, { prefix: '/admin' })
