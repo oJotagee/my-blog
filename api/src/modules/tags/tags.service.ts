@@ -1,3 +1,4 @@
+import { contentCache } from '../../shared/content-cache'
 import { getUniqueViolation } from '../../shared/db-errors'
 import { BadRequestError, ConflictError, NotFoundError } from '../../shared/errors'
 import { slugify } from '../../shared/slug'
@@ -26,7 +27,7 @@ function toConflictError(error: unknown) {
 
 export const tagsService = {
   listPublic() {
-    return tagsRepository.listWithCounts(true)
+    return contentCache.getOrLoad('tags', () => tagsRepository.listWithCounts(true))
   },
 
   listAll() {

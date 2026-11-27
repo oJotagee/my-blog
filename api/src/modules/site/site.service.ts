@@ -1,3 +1,4 @@
+import { contentCache } from '../../shared/content-cache'
 import { BadRequestError } from '../../shared/errors'
 import { postsRepository } from '../posts/posts.repository'
 import { emptySite, type SiteBody } from './site.dto'
@@ -23,24 +24,26 @@ async function findFeatured(featuredPostId: string | null) {
 export const siteService = {
   getAdmin: load,
 
-  async getPublic() {
-    const { featuredPostId, ...site } = await load()
+  getPublic() {
+    return contentCache.getOrLoad('site', async () => {
+      const { featuredPostId, ...site } = await load()
 
-    const post = await findFeatured(featuredPostId)
+      const post = await findFeatured(featuredPostId)
 
-    return {
-      ...site,
-      featuredPost: post && {
-        id: post.id,
-        slug: post.slug,
-        title: post.title,
-        summary: post.summary,
-        publishedAt: post.publishedAt,
-        studiedFrom: post.studiedFrom,
-        studiedTo: post.studiedTo,
-        tags: post.tags,
-      },
-    }
+      return {
+        ...site,
+        featuredPost: post && {
+          id: post.id,
+          slug: post.slug,
+          title: post.title,
+          summary: post.summary,
+          publishedAt: post.publishedAt,
+          studiedFrom: post.studiedFrom,
+          studiedTo: post.studiedTo,
+          tags: post.tags,
+        },
+      }
+    })
   },
 
   async update(body: SiteBody) {

@@ -26,20 +26,22 @@ A API sobe em http://localhost:8080 e a documentação interativa (Scalar) fica 
 
 Validadas em [`src/config/env.ts`](src/config/env.ts); a API não sobe com valor inválido. Use `process.env` só nesse arquivo.
 
-| Variável                        | Obrigatória | Uso                                                                  |
-| ------------------------------- | ----------- | -------------------------------------------------------------------- |
-| `DATABASE_URL`                  | sim         | conexão Postgres (Neon)                                              |
-| `JWT_SECRET`                    | sim         | segredo do access token, mínimo de 32 caracteres                     |
-| `ADMIN_EMAIL`                   | sim         | e-mail do único usuário                                              |
-| `ADMIN_PASSWORD_HASH`           | sim         | hash bcrypt da senha, gerado por `bun run hash-password`             |
-| `JWT_EXPIRES_IN`                | não (15m)   | validade do access token                                             |
-| `REFRESH_TOKEN_EXPIRES_IN_DAYS` | não (30)    | validade do refresh token                                            |
-| `CORS_ORIGIN`                   | não         | origens do front, separadas por vírgula                              |
-| `PORT`                          | não (8080)  | porta HTTP                                                           |
-| `NODE_ENV`                      | não         | `development`, `test` ou `production`                                |
-| `AWS_REGION`, `S3_BUCKET`       | não         | bucket das imagens; sem eles `/admin/media` responde 503             |
-| `CDN_URL`                       | não         | URL pública das imagens (CloudFront); sem ela as imagens vêm sem URL |
-| `MEDIA_MAX_BYTES`               | não (5 MB)  | tamanho máximo de uma imagem                                         |
+| Variável                        | Obrigatória  | Uso                                                                  |
+| ------------------------------- | ------------ | -------------------------------------------------------------------- |
+| `DATABASE_URL`                  | sim          | conexão Postgres (Neon)                                              |
+| `JWT_SECRET`                    | sim          | segredo do access token, mínimo de 32 caracteres                     |
+| `ADMIN_EMAIL`                   | sim          | e-mail do único usuário                                              |
+| `ADMIN_PASSWORD_HASH`           | sim          | hash bcrypt da senha, gerado por `bun run hash-password`             |
+| `JWT_EXPIRES_IN`                | não (15m)    | validade do access token                                             |
+| `REFRESH_TOKEN_EXPIRES_IN_DAYS` | não (30)     | validade do refresh token                                            |
+| `CORS_ORIGIN`                   | não          | origens do front, separadas por vírgula                              |
+| `PORT`                          | não (8080)   | porta HTTP                                                           |
+| `NODE_ENV`                      | não          | `development`, `test` ou `production`                                |
+| `AWS_REGION`, `S3_BUCKET`       | não          | bucket das imagens; sem eles `/admin/media` responde 503             |
+| `CDN_URL`                       | não          | URL pública das imagens (CloudFront); sem ela as imagens vêm sem URL |
+| `MEDIA_MAX_BYTES`               | não (5 MB)   | tamanho máximo de uma imagem                                         |
+| `REDIS_URL`                     | não          | cache das rotas públicas; sem ela a leitura vai direto ao banco      |
+| `CACHE_TTL_SECONDS`             | não (7 dias) | validade do cache, mínimo de 60                                      |
 
 As credenciais da AWS (`AWS_ACCESS_KEY_ID` e `AWS_SECRET_ACCESS_KEY`) vêm do ambiente.
 
@@ -98,6 +100,25 @@ Só as rotas de `/admin` exigem `Authorization: Bearer <token>`. As outras são 
 
 O bucket precisa de CORS liberando `PUT` a partir do domínio do front.
 
+## Cache
+
+Redis nas rotas públicas. Localmente, `bun run docker:dev:up` na raiz e `REDIS_URL="redis://localhost:6379"`.
+
+| Guardado                                                   | Validade            |
+| ---------------------------------------------------------- | ------------------- |
+| `GET /posts` (sem busca), `/posts/:slug`, `/tags`, `/site` | `CACHE_TTL_SECONDS` |
+| id do post usado ao contar uma visita                      | `CACHE_TTL_SECONDS` |
+| `GET /analytics/popular`                                   | 5 minutos           |
+
+Não são guardados: buscas (`q`), respostas de erro e as rotas de `/admin`.
+
+- **Invalidação:** toda escrita em `/admin` (criar, editar, apagar, publicar) troca a geração do cache antes de responder. O próximo pedido reconstrói cada chave. Uma visita não invalida nada.
+- **Reconstrução:** com a chave vazia ou a menos de 30 segundos de vencer, um único pedido consulta o banco, com um lock no Redis; os outros esperam o resultado.
+- **Redis fora do ar:** a API responde pelo banco. Se uma invalidação falhar, o processo ignora o cache até conseguir fazê-la.
+- **Mudança direta no banco** (script ou Drizzle Studio) não passa pela API: reinicie a API, que invalida o cache ao subir.
+
+O Redis precisa da política `volatile-lru`, para o contador de geração nunca ser descartado.
+
 ## Banco de dados
 
 O schema fica em [`src/db/schema.ts`](src/db/schema.ts), com as tabelas nomeadas `xSchema` e `...timestamps`:
@@ -141,6 +162,7 @@ Módulos: `auth`, `health`, `tags`, `posts`, `site`, `media` e `analytics`. O c�
 ## Deploy (Railway)
 
 - `NODE_ENV=production`, `CORS_ORIGIN` com o domínio do front e `ADMIN_PASSWORD_HASH` sem escape.
+- Adicione um Redis ao projeto, aponte `REDIS_URL` para ele e use `maxmemory-policy volatile-lru`.
 - Em produção a API confia no primeiro proxy para ler o IP do cliente (limites por IP). Confira o `X-Forwarded-For` depois do primeiro deploy.
 
 ## Testes

@@ -19,6 +19,12 @@ const envSchema = z.object({
     .int()
     .positive()
     .default(5 * 1024 * 1024),
+  REDIS_URL: z.url({ protocol: /^rediss?$/ }).optional(),
+  CACHE_TTL_SECONDS: z.coerce
+    .number()
+    .int()
+    .min(60)
+    .default(7 * 24 * 60 * 60),
   CDN_URL: z
     .url({ protocol: /^https?$/ })
     .transform((value) => value.replace(/\/+$/, ''))

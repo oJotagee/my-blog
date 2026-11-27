@@ -9,6 +9,7 @@ import { adminPostsRoutes, postsRoutes } from './modules/posts/posts.routes'
 import { adminSiteRoutes, siteRoutes } from './modules/site/site.routes'
 import { adminTagsRoutes, tagsRoutes } from './modules/tags/tags.routes'
 import { authPlugin } from './plugins/auth'
+import { registerCache } from './plugins/cache'
 import { registerErrorHandler } from './plugins/error-handler'
 import { RequestLogController } from './plugins/logger'
 import { registerSecurity } from './plugins/security'
@@ -43,6 +44,8 @@ export function buildApp() {
   registerSecurity(app)
 
   registerSwagger(app)
+
+  registerCache(app)
 
   app.register(authPlugin)
 

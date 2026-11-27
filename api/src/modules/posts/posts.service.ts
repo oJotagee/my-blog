@@ -1,3 +1,4 @@
+import { contentCache } from '../../shared/content-cache'
 import { getUniqueViolation } from '../../shared/db-errors'
 import { BadRequestError, ConflictError, NotFoundError } from '../../shared/errors'
 import { mediaUrl } from '../../shared/media-url'
@@ -133,22 +134,31 @@ async function assertExists(id: string) {
 
 export const postsService = {
   async listPublic({ page, limit, q, tag }: PublicListQuery) {
-    const { items, total } = await postsRepository.listPublished({
-      q,
-      tag,
-      limit,
-      offset: (page - 1) * limit,
-    })
+    const load = async () => {
+      const { items, total } = await postsRepository.listPublished({
+        q,
+        tag,
+        limit,
+        offset: (page - 1) * limit,
+      })
 
-    return toPage(items.map(toListItem), total, page, limit)
+      return toPage(items.map(toListItem), total, page, limit)
+    }
+
+    // A busca é texto livre: guardar cada termo encheria o Redis sem repetir acessos.
+    if (q) return load()
+
+    return contentCache.getOrLoad(`posts:${JSON.stringify([page, limit, tag ?? null])}`, load)
   },
 
   async getPublic(slug: string) {
-    const post = await postsRepository.findPublishedBySlug(slug)
+    return contentCache.getOrLoad(`post:${slug}`, async () => {
+      const post = await postsRepository.findPublishedBySlug(slug)
 
-    if (!post) throw new NotFoundError(POST_NOT_FOUND)
+      if (!post) throw new NotFoundError(POST_NOT_FOUND)
 
-    return { ...toDetail(post), number: post.number, total: post.total }
+      return { ...toDetail(post), number: post.number, total: post.total }
+    })
   },
 
   async listAdmin({ page, limit, status, q }: AdminListQuery) {

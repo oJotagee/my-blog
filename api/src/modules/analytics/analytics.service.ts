@@ -1,3 +1,4 @@
+import { contentCache, VIEWS_TTL_MS } from '../../shared/content-cache'
 import { NotFoundError } from '../../shared/errors'
 import { analyticsRepository } from './analytics.repository'
 
@@ -11,7 +12,9 @@ const daysAgo = (days: number) => new Date(Date.now() - days * DAY_MS).toISOStri
 
 export const analyticsService = {
   async recordView(slug: string) {
-    const postId = await analyticsRepository.findPublishedIdBySlug(slug)
+    const postId = await contentCache.getOrLoad(`post-id:${slug}`, () =>
+      analyticsRepository.findPublishedIdBySlug(slug),
+    )
 
     if (!postId) throw new NotFoundError('Post not found')
 
@@ -19,7 +22,11 @@ export const analyticsService = {
   },
 
   popular(limit: number) {
-    return analyticsRepository.topPosts(limit)
+    return contentCache.getOrLoad(
+      `popular:${limit}`,
+      () => analyticsRepository.topPosts(limit),
+      VIEWS_TTL_MS,
+    )
   },
 
   async dashboard() {
