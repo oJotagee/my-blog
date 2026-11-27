@@ -32,6 +32,7 @@ Monorepo com [Bun](https://bun.com) workspaces:
 
 - Bun 1.4.2 ou mais novo
 - Um banco Postgres no [Neon](https://neon.com)
+- Docker, para o Redis local do cache (opcional): `bun run docker:dev:up`
 - Para o upload de imagens: bucket S3 e distribuição CloudFront (sem eles, só as rotas de mídia ficam indisponíveis)
 
 ## Como rodar
@@ -64,20 +65,22 @@ Abra http://localhost:8080/docs para ver a documentação.
 
 ## Scripts da raiz
 
-| Comando               | Faz                                                 |
-| --------------------- | --------------------------------------------------- |
-| `bun run dev`         | sobe todos os workspaces em modo de desenvolvimento |
-| `bun run dev:api`     | sobe só a API                                       |
-| `bun run dev:web`     | sobe só o front                                     |
-| `bun run build:web`   | gera o build do front                               |
-| `bun run lint`        | verifica lint e formatação com o Biome              |
-| `bun run lint:fix`    | corrige lint e formatação                           |
-| `bun run format`      | formata o código                                    |
-| `bun run typecheck`   | checa os tipos de todos os workspaces               |
-| `bun run test`        | roda os testes unitários                            |
-| `bun run db:generate` | gera uma migration a partir do schema               |
-| `bun run db:migrate`  | aplica as migrations                                |
-| `bun run db:studio`   | abre o Drizzle Studio                               |
+| Comando                   | Faz                                                 |
+| ------------------------- | --------------------------------------------------- |
+| `bun run dev`             | sobe todos os workspaces em modo de desenvolvimento |
+| `bun run dev:api`         | sobe só a API                                       |
+| `bun run dev:web`         | sobe só o front                                     |
+| `bun run docker:dev:up`   | sobe o Redis local do cache                         |
+| `bun run docker:dev:down` | para o Redis local                                  |
+| `bun run build:web`       | gera o build do front                               |
+| `bun run lint`            | verifica lint e formatação com o Biome              |
+| `bun run lint:fix`        | corrige lint e formatação                           |
+| `bun run format`          | formata o código                                    |
+| `bun run typecheck`       | checa os tipos de todos os workspaces               |
+| `bun run test`            | roda os testes unitários                            |
+| `bun run db:generate`     | gera uma migration a partir do schema               |
+| `bun run db:migrate`      | aplica as migrations                                |
+| `bun run db:studio`       | abre o Drizzle Studio                               |
 
 ## Qualidade
 

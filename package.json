@@ -14,6 +14,8 @@
     "dev:api": "bun run --filter '@blog/api' dev",
     "dev:web": "bun run --filter '@blog/web' dev",
     "build:web": "bun run --filter '@blog/web' build",
+    "docker:dev:up": "docker compose up -d",
+    "docker:dev:down": "docker compose down",
     "hash-password": "bun run --filter '@blog/api' hash-password",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
