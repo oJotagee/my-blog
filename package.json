@@ -12,6 +12,8 @@
     "prepare": "git config core.hooksPath .githooks || true",
     "dev": "bun run --filter '*' dev",
     "dev:api": "bun run --filter '@blog/api' dev",
+    "dev:web": "bun run --filter '@blog/web' dev",
+    "build:web": "bun run --filter '@blog/web' build",
     "hash-password": "bun run --filter '@blog/api' hash-password",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
