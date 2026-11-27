@@ -11,22 +11,22 @@ Blog pessoal para me forçar a estudar. Cada coisa que eu estudo ou leio vira um
 
 ## Estado atual
 
-| Parte        | Situação                                                                            |
-| ------------ | ----------------------------------------------------------------------------------- |
-| API: base    | pronta: Fastify, Zod, Swagger com Scalar, segurança, logs e `/health`               |
-| API: banco   | schema e migrations prontos em `api/src/db/schema.ts`                               |
-| API: módulos | prontos: auth, tags, posts, site, mídia (S3 + CloudFront) e analytics               |
-| API: testes  | unitários com repositórios em memória; nenhuma query rodou contra o Neon real ainda |
-| Front        | a fazer, só depois da API testada de ponta a ponta (`apps/web`)                     |
+| Parte        | Situação                                                                             |
+| ------------ | ------------------------------------------------------------------------------------ |
+| API: base    | pronta: Fastify, Zod, Swagger com Scalar, segurança, logs e `/health`                |
+| API: banco   | schema e migrations prontos em `api/src/db/schema.ts`                                |
+| API: módulos | prontos: auth, tags, posts, site, mídia (S3 + CloudFront) e analytics                |
+| API: testes  | unitários com repositórios em memória; fluxo validado no Neon, no S3 e na CloudFront |
+| Front        | home, artigo e login prontos; telas do painel a fazer                                |
 
 ## Estrutura
 
 Monorepo com [Bun](https://bun.com) workspaces:
 
-| Pasta                   | O que é                                        |
-| ----------------------- | ---------------------------------------------- |
-| [`api/`](api/README.md) | API REST em Fastify, Drizzle e Postgres (Neon) |
-| `apps/*`                | reservado para o front, ainda não existe       |
+| Pasta                             | O que é                                        |
+| --------------------------------- | ---------------------------------------------- |
+| [`api/`](api/README.md)           | API REST em Fastify, Drizzle e Postgres (Neon) |
+| [`apps/web/`](apps/web/README.md) | front em Next.js                               |
 
 ## Requisitos
 
@@ -68,6 +68,8 @@ Abra http://localhost:8080/docs para ver a documentação.
 | --------------------- | --------------------------------------------------- |
 | `bun run dev`         | sobe todos os workspaces em modo de desenvolvimento |
 | `bun run dev:api`     | sobe só a API                                       |
+| `bun run dev:web`     | sobe só o front                                     |
+| `bun run build:web`   | gera o build do front                               |
 | `bun run lint`        | verifica lint e formatação com o Biome              |
 | `bun run lint:fix`    | corrige lint e formatação                           |
 | `bun run format`      | formata o código                                    |
@@ -80,7 +82,7 @@ Abra http://localhost:8080/docs para ver a documentação.
 ## Qualidade
 
 - **Pre-commit** (`.githooks/pre-commit`): formata e corrige os arquivos no stage com o Biome e recoloca no stage. Bloqueia o commit se sobrar erro. É instalado sozinho pelo `bun install`.
-- **CI** (`.github/workflows/ci.yml`): em push na `main` e em PR, roda lint e formatação, typecheck e testes unitários da API.
+- **CI** (`.github/workflows/ci.yml`): em push na `main` e em PR, roda lint e formatação, typecheck e testes unitários da API, além de typecheck e build do front.
 
 ## Estilo
 
