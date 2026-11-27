@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, sql } from 'drizzle-orm'
 
 import { db } from '../../db'
 import { postSchema, postViewsDailySchema, tagSchema } from '../../db/schema'
@@ -26,12 +26,25 @@ export const analyticsRepository = {
       })
   },
 
+  async viewsByPostIds(postIds: string[]) {
+    if (postIds.length === 0) return new Map<string, number>()
+
+    const rows = await db
+      .select({ postId: postViewsDailySchema.postId, views: totalViews })
+      .from(postViewsDailySchema)
+      .where(inArray(postViewsDailySchema.postId, postIds))
+      .groupBy(postViewsDailySchema.postId)
+
+    return new Map(rows.map((row) => [row.postId, row.views]))
+  },
+
   async topPosts(limit: number, since?: string) {
     return db
       .select({
         id: postSchema.id,
         slug: postSchema.slug,
         title: postSchema.title,
+        publishedAt: postSchema.publishedAt,
         views: totalViews,
       })
       .from(postViewsDailySchema)

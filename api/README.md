@@ -57,37 +57,37 @@ O front (Next.js) guarda os tokens no servidor, como no Lynko.
 
 Só as rotas de `/admin` exigem `Authorization: Bearer <token>`. As outras são públicas; `/auth/refresh` e `/auth/logout` agem sobre o cookie do refresh token.
 
-| Método             | Caminho                      | Faz                                                                  |
-| ------------------ | ---------------------------- | -------------------------------------------------------------------- |
-| GET                | `/health`                    | responde `{ "status": "ok" }`                                        |
-| POST               | `/auth/login`                | login (5 por minuto)                                                 |
-| POST               | `/auth/refresh`              | troca o refresh token por um access token novo                       |
-| POST               | `/auth/logout`               | revoga a sessão                                                      |
-| GET                | `/posts`                     | posts publicados, com `page`, `limit` (até 50), `q` e `tag`          |
-| GET                | `/posts/:slug`               | post publicado com seções, blocos, referências, capa e posição       |
-| GET                | `/tags`                      | tags com posts publicados e a contagem                               |
-| GET                | `/site`                      | textos da home, rodapé e post em destaque                            |
-| POST               | `/analytics/views/:slug`     | conta uma visita (30 por minuto por IP)                              |
-| GET                | `/analytics/popular`         | posts mais vistos                                                    |
-| GET                | `/admin/posts`               | todos os posts, com filtro `status`                                  |
-| POST               | `/admin/posts`               | cria um rascunho; o slug sai do título                               |
-| GET, PATCH, DELETE | `/admin/posts/:id`           | lê, edita (`null` limpa um campo) ou apaga um post                   |
-| PUT                | `/admin/posts/:id/content`   | substitui seções, blocos e referências; recalcula o tempo de leitura |
-| PUT                | `/admin/posts/:id/tags`      | define as tags do post                                               |
-| POST               | `/admin/posts/:id/publish`   | publica (precisa de pelo menos um bloco)                             |
-| POST               | `/admin/posts/:id/unpublish` | volta para rascunho                                                  |
-| GET, POST          | `/admin/tags`                | lista e cria tags                                                    |
-| PATCH, DELETE      | `/admin/tags/:id`            | renomeia e apaga uma tag                                             |
-| GET                | `/admin/skills`              | tags estudadas, com contagem e datas, para LinkedIn e currículo      |
-| GET, PUT           | `/admin/site`                | lê e substitui a configuração da home                                |
-| POST               | `/admin/media/presign`       | cria a URL de upload direto ao S3                                    |
-| POST               | `/admin/media/:id/confirm`   | valida o arquivo enviado e o publica                                 |
-| GET, DELETE        | `/admin/media/:id`           | lê ou apaga uma imagem (409 se algum post a usa)                     |
-| GET                | `/admin/dashboard`           | totais, visitas dos últimos 30 dias e posts mais vistos              |
+| Método             | Caminho                      | Faz                                                              |
+| ------------------ | ---------------------------- | ---------------------------------------------------------------- |
+| GET                | `/health`                    | responde `{ "status": "ok" }`                                    |
+| POST               | `/auth/login`                | login (5 por minuto)                                             |
+| POST               | `/auth/refresh`              | troca o refresh token por um access token novo                   |
+| POST               | `/auth/logout`               | revoga a sessão                                                  |
+| GET                | `/posts`                     | posts publicados, com `page`, `limit` (até 50), `q` e `tag`      |
+| GET                | `/posts/:slug`               | post publicado com seções, blocos, referências, capa e posição   |
+| GET                | `/tags`                      | tags com posts publicados e a contagem                           |
+| GET                | `/site`                      | textos da home, rodapé e post em destaque                        |
+| POST               | `/analytics/views/:slug`     | conta uma visita (30 por minuto por IP)                          |
+| GET                | `/analytics/popular`         | posts mais vistos                                                |
+| GET                | `/admin/posts`               | posts com `status` e `q`, visitas por post e contagem por status |
+| POST               | `/admin/posts`               | cria um rascunho; o slug sai do título                           |
+| GET, PATCH, DELETE | `/admin/posts/:id`           | lê, edita (`null` limpa um campo) ou apaga um post               |
+| PUT                | `/admin/posts/:id/content`   | substitui seções, blocos e referências                           |
+| PUT                | `/admin/posts/:id/tags`      | define as tags do post                                           |
+| POST               | `/admin/posts/:id/publish`   | publica (precisa de pelo menos um bloco)                         |
+| POST               | `/admin/posts/:id/unpublish` | volta para rascunho                                              |
+| GET, POST          | `/admin/tags`                | lista e cria tags                                                |
+| PATCH, DELETE      | `/admin/tags/:id`            | renomeia e apaga uma tag                                         |
+| GET                | `/admin/skills`              | tags estudadas, com contagem e datas, para LinkedIn e currículo  |
+| GET, PUT           | `/admin/site`                | lê e substitui a configuração da home                            |
+| POST               | `/admin/media/presign`       | cria a URL de upload direto ao S3                                |
+| POST               | `/admin/media/:id/confirm`   | valida o arquivo enviado e o publica                             |
+| GET, DELETE        | `/admin/media/:id`           | lê ou apaga uma imagem (409 se algum post a usa)                 |
+| GET                | `/admin/dashboard`           | totais, visitas dos últimos 30 dias e posts mais vistos          |
 
 ### Conteúdo de um post
 
-`PUT /admin/posts/:id/content` recebe `sections` e `references`. Cada seção tem `label`, `title` e `blocks`. Tipos de bloco: `text`, `image`, `code`, `callout` e `cards`. Blocos com o mesmo `groupId` na mesma seção ficam lado a lado.
+`PUT /admin/posts/:id/content` recebe `sections` e `references`. Cada seção tem `label`, `title` e `blocks`. Tipos de bloco: `text`, `image`, `code`, `callout`, `cards` e `quote`. Blocos com o mesmo `groupId` na mesma seção ficam lado a lado.
 
 ### Upload de imagem
 
@@ -102,18 +102,18 @@ O bucket precisa de CORS liberando `PUT` a partir do domínio do front.
 
 O schema fica em [`src/db/schema.ts`](src/db/schema.ts), com as tabelas nomeadas `xSchema` e `...timestamps`:
 
-| Tabela             | Guarda                                                                 |
-| ------------------ | ---------------------------------------------------------------------- |
-| `sessions`         | sessões de login e o hash do refresh token                             |
-| `posts`            | slug, título, resumo, status, período estudado, capa, tempo de leitura |
-| `sections`         | seções de um post, com rótulo, título e posição                        |
-| `blocks`           | blocos de uma seção; blocos com o mesmo `group_id` ficam lado a lado   |
-| `post_references`  | referências usadas no post                                             |
-| `media`            | imagens enviadas ao S3, com status `pending`, `ready` ou `failed`      |
-| `tags`             | tags de conhecimento (nome e slug únicos)                              |
-| `post_tags`        | ligação entre posts e tags                                             |
-| `post_views_daily` | visitas por post e por dia                                             |
-| `site_settings`    | uma linha com a configuração da home, em JSON                          |
+| Tabela             | Guarda                                                               |
+| ------------------ | -------------------------------------------------------------------- |
+| `sessions`         | sessões de login e o hash do refresh token                           |
+| `posts`            | slug, título, resumo, status, período estudado, capa                 |
+| `sections`         | seções de um post, com rótulo, título e posição                      |
+| `blocks`           | blocos de uma seção; blocos com o mesmo `group_id` ficam lado a lado |
+| `post_references`  | referências usadas no post                                           |
+| `media`            | imagens enviadas ao S3, com status `pending`, `ready` ou `failed`    |
+| `tags`             | tags de conhecimento (nome e slug únicos)                            |
+| `post_tags`        | ligação entre posts e tags                                           |
+| `post_views_daily` | visitas por post e por dia                                           |
+| `site_settings`    | uma linha com a configuração da home, em JSON                        |
 
 Depois de mudar o schema, gere e aplique uma migration nova. Uma migration já aplicada não é reescrita. O `db:generate` faz perguntas (renomear ou criar coluna), então rode em um terminal interativo.
 

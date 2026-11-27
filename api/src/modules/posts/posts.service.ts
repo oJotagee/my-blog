@@ -2,6 +2,7 @@ import { getUniqueViolation } from '../../shared/db-errors'
 import { BadRequestError, ConflictError, NotFoundError } from '../../shared/errors'
 import { mediaUrl } from '../../shared/media-url'
 import { slugify } from '../../shared/slug'
+import { analyticsRepository } from '../analytics/analytics.repository'
 import type {
   AdminListQuery,
   ContentBody,
@@ -9,7 +10,6 @@ import type {
   PublicListQuery,
   UpdatePostBody,
 } from './posts.dto'
-import { estimateReadingMinutes } from './posts.reading'
 import {
   type ContentInput,
   type MediaInfo,
@@ -52,10 +52,9 @@ function toListItem({
   publishedAt,
   studiedFrom,
   studiedTo,
-  readingMinutes,
   tags,
 }: PostListItem) {
-  return { id, slug, title, summary, publishedAt, studiedFrom, studiedTo, readingMinutes, tags }
+  return { id, slug, title, summary, publishedAt, studiedFrom, studiedTo, tags }
 }
 
 function toDetail(post: PostDetail) {
@@ -74,7 +73,6 @@ function toDetail(post: PostDetail) {
 
 function toContentInput(body: ContentBody): ContentInput {
   return {
-    readingMinutes: estimateReadingMinutes(body.sections),
     references: body.references.map((reference) => ({
       ...reference,
       author: reference.author ?? null,
@@ -153,23 +151,34 @@ export const postsService = {
     return { ...toDetail(post), number: post.number, total: post.total }
   },
 
-  async listAdmin({ page, limit, status }: AdminListQuery) {
-    const { items, total } = await postsRepository.listAll({
-      status,
-      limit,
-      offset: (page - 1) * limit,
-    })
+  async listAdmin({ page, limit, status, q }: AdminListQuery) {
+    const [{ items, total }, byStatus] = await Promise.all([
+      postsRepository.listAll({ status, q, limit, offset: (page - 1) * limit }),
+      analyticsRepository.countPostsByStatus(),
+    ])
 
-    return toPage(
-      items.map((post) => ({
-        ...toListItem(post),
-        status: post.status,
-        updatedAt: post.updatedAt,
-      })),
-      total,
-      page,
-      limit,
-    )
+    const views = await analyticsRepository.viewsByPostIds(items.map((post) => post.id))
+
+    const countOf = (wanted: string) => byStatus.find((row) => row.status === wanted)?.total ?? 0
+
+    const published = countOf('published')
+
+    const draft = countOf('draft')
+
+    return {
+      ...toPage(
+        items.map((post) => ({
+          ...toListItem(post),
+          status: post.status,
+          updatedAt: post.updatedAt,
+          views: views.get(post.id) ?? 0,
+        })),
+        total,
+        page,
+        limit,
+      ),
+      counts: { all: published + draft, published, draft },
+    }
   },
 
   getAdmin: getAdminPost,

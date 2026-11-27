@@ -30,7 +30,7 @@ export const analyticsService = {
       analyticsRepository.countTags(),
       analyticsRepository.totalViews(),
       analyticsRepository.viewsByDay(since),
-      analyticsRepository.topPosts(5),
+      analyticsRepository.topPosts(5, since),
     ])
 
     const perDay = new Map(byDay.map((row) => [row.date, row.views]))

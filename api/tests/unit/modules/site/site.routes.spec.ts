@@ -6,6 +6,7 @@ import { buildPost } from '../../support/builders'
 import { useInMemoryRepositories } from '../../support/memory-repositories'
 
 const fullSite = {
+  heroEyebrow: 'Notas',
   heroTitle: 'Estudo em público',
   heroSubtitle: 'Notas do que aprendo',
   aboutTitle: 'Sobre',
@@ -15,6 +16,8 @@ const fullSite = {
   city: 'São Paulo',
   githubUrl: 'https://github.com/example',
   portfolioUrl: 'https://example.com',
+  footerNote: 'Escrevendo para aprender.',
+  footerYear: 2026,
   featuredPostId: null,
 }
 

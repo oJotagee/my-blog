@@ -46,7 +46,6 @@ export const postSchema = pgTable(
     studiedTo: date('studied_to', { mode: 'string' }),
     coverMediaId: uuid('cover_media_id'),
     coverCaption: varchar('cover_caption', { length: 120 }),
-    readingMinutes: integer('reading_minutes').notNull().default(1),
     ...timestamps,
   },
   (table) => [index('posts_status_published_at_idx').on(table.status, table.publishedAt)],
@@ -102,7 +101,7 @@ export const blockSchema = pgTable(
       .references(() => sectionSchema.id, { onDelete: 'cascade' }),
     position: integer('position').notNull().default(0),
     type: varchar('type', { length: 8 })
-      .$type<'text' | 'image' | 'code' | 'callout' | 'cards'>()
+      .$type<'text' | 'image' | 'code' | 'callout' | 'cards' | 'quote'>()
       .notNull(),
     groupId: integer('group_id'),
     content: text('content'),
@@ -115,7 +114,7 @@ export const blockSchema = pgTable(
     index('blocks_section_id_position_idx').on(table.sectionId, table.position),
     check(
       'blocks_type_check',
-      sql`(${table.type} IN ('text', 'code', 'callout') AND ${table.content} IS NOT NULL) OR ${table.type} = 'image' OR (${table.type} = 'cards' AND ${table.meta} IS NOT NULL)`,
+      sql`(${table.type} IN ('text', 'code', 'callout', 'quote') AND ${table.content} IS NOT NULL) OR ${table.type} = 'image' OR (${table.type} = 'cards' AND ${table.meta} IS NOT NULL)`,
     ),
   ],
 )

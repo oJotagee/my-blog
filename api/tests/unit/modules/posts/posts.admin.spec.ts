@@ -82,7 +82,6 @@ describe('admin posts routes', () => {
       publishedAt: null,
       studiedFrom: '2026-03-12',
       studiedTo: '2026-03-17',
-      readingMinutes: 1,
       sections: [],
       references: [],
       tags: [],
@@ -249,19 +248,43 @@ describe('admin posts routes', () => {
     expect(store.sections).toHaveLength(0)
   })
 
-  it('PUT content recalculates the reading time', async () => {
-    const post = buildPost({ readingMinutes: 1 })
+  it('PUT content accepts a quote block and marks the post as updated', async () => {
+    const post = buildPost()
 
     store.posts.push(post)
 
-    const text = Array.from({ length: 450 }, () => 'palavra').join(' ')
+    const before = post.updatedAt.getTime()
 
     const response = await send('PUT', `/admin/posts/${post.id}/content`, {
-      sections: [{ blocks: [{ type: 'text', content: text }] }],
+      sections: [{ blocks: [{ type: 'quote', content: 'Uma frase' }] }],
       references: [],
     })
 
-    expect(response.json().readingMinutes).toBe(3)
+    expect(response.json().sections[0].blocks[0]).toMatchObject({
+      type: 'quote',
+      content: 'Uma frase',
+    })
+
+    expect(post.updatedAt.getTime()).toBeGreaterThan(before)
+  })
+
+  it('GET /admin/posts searches by title and returns views and counts', async () => {
+    const found = buildPost({ title: 'Filas com RabbitMQ' })
+
+    store.posts.push(found, buildPost({ title: 'Outro', status: 'draft', publishedAt: null }))
+
+    store.views.push(
+      { postId: found.id, date: '2026-03-01', views: 2 },
+      { postId: found.id, date: '2026-03-02', views: 3 },
+    )
+
+    const body = (await send('GET', '/admin/posts?q=rabbit')).json()
+
+    expect(body.items).toHaveLength(1)
+
+    expect(body.items[0]).toMatchObject({ title: 'Filas com RabbitMQ', views: 5 })
+
+    expect(body.counts).toEqual({ all: 2, published: 1, draft: 1 })
   })
 
   it('PUT content rejects invalid blocks, references, pending media and unknown posts', async () => {

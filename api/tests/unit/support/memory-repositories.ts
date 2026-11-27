@@ -2,6 +2,7 @@ import { spyOn } from 'bun:test'
 import { randomUUID } from 'node:crypto'
 
 import type { BlockMeta } from '../../../src/db/schema'
+import { analyticsRepository } from '../../../src/modules/analytics/analytics.repository'
 import { authRepository } from '../../../src/modules/auth/auth.repository'
 import {
   type BlockType,
@@ -76,6 +77,7 @@ export function useInMemoryRepositories() {
     blocks: [] as Block[],
     references: [] as Reference[],
     media: [] as Media[],
+    views: [] as { postId: string; date: string; views: number }[],
     site: undefined as Record<string, unknown> | undefined,
   }
 
@@ -266,10 +268,28 @@ export function useInMemoryRepositories() {
     return paginate(posts, limit, offset)
   })
 
-  spyOn(postsRepository, 'listAll').mockImplementation(async ({ status, limit, offset }) =>
+  spyOn(analyticsRepository, 'countPostsByStatus').mockImplementation(async () =>
+    (['published', 'draft'] as const).map((status) => ({
+      status,
+      total: store.posts.filter((post) => post.status === status).length,
+    })),
+  )
+
+  spyOn(analyticsRepository, 'viewsByPostIds').mockImplementation(async (ids) => {
+    const totals = new Map<string, number>()
+
+    for (const row of store.views.filter((item) => ids.includes(item.postId))) {
+      totals.set(row.postId, (totals.get(row.postId) ?? 0) + row.views)
+    }
+
+    return totals
+  })
+
+  spyOn(postsRepository, 'listAll').mockImplementation(async ({ status, q, limit, offset }) =>
     paginate(
       store.posts
         .filter((post) => !status || post.status === status)
+        .filter((post) => !q || post.title.toLowerCase().includes(q.toLowerCase()))
         .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime()),
       limit,
       offset,
@@ -405,7 +425,7 @@ export function useInMemoryRepositories() {
   })
 
   spyOn(postsRepository, 'replaceContent').mockImplementation(
-    async (postId, { sections, references, readingMinutes }) => {
+    async (postId, { sections, references }) => {
       const oldSectionIds = store.sections.filter((s) => s.postId === postId).map((s) => s.id)
 
       store.blocks = store.blocks.filter((block) => !oldSectionIds.includes(block.sectionId))
@@ -434,7 +454,7 @@ export function useInMemoryRepositories() {
 
       const post = store.posts.find((item) => item.id === postId)
 
-      if (post) post.readingMinutes = readingMinutes
+      if (post) post.updatedAt = new Date()
     },
   )
 

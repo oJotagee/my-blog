@@ -18,7 +18,6 @@ export function buildPost(overrides: Partial<PostRow> = {}): PostRow {
     studiedTo: null,
     coverMediaId: null,
     coverCaption: null,
-    readingMinutes: 1,
     createdAt,
     updatedAt: createdAt,
     ...overrides,

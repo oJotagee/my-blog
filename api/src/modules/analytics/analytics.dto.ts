@@ -17,6 +17,7 @@ const topPostResponse = z.object({
   id: z.uuid(),
   slug: z.string(),
   title: z.string(),
+  publishedAt: z.date().nullable(),
   views: z.number().int(),
 })
 

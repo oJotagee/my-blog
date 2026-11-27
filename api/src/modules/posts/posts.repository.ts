@@ -28,7 +28,7 @@ export type MediaInfo = {
   height: number | null
 }
 
-export type BlockType = 'text' | 'image' | 'code' | 'callout' | 'cards'
+export type BlockType = 'text' | 'image' | 'code' | 'callout' | 'cards' | 'quote'
 
 export type PostBlock = {
   id: string
@@ -89,12 +89,11 @@ export type ContentInput = {
     }[]
   }[]
   references: { title: string; author: string | null; note: string | null; url: string }[]
-  readingMinutes: number
 }
 
 type ListFilter = { q?: string; tag?: string; limit: number; offset: number }
 
-type AdminFilter = { status?: 'draft' | 'published'; limit: number; offset: number }
+type AdminFilter = { status?: 'draft' | 'published'; q?: string; limit: number; offset: number }
 
 const mediaColumns = {
   id: mediaSchema.id,
@@ -251,9 +250,12 @@ export const postsRepository = {
     return pageOf(and(...conditions), publishedOrder, limit, offset)
   },
 
-  async listAll({ status, limit, offset }: AdminFilter) {
+  async listAll({ status, q, limit, offset }: AdminFilter) {
     return pageOf(
-      status ? eq(postSchema.status, status) : undefined,
+      and(
+        status ? eq(postSchema.status, status) : undefined,
+        q ? ilike(postSchema.title, `%${escapeLike(q)}%`) : undefined,
+      ),
       [desc(postSchema.updatedAt)],
       limit,
       offset,
@@ -398,7 +400,7 @@ export const postsRepository = {
     ])
   },
 
-  async replaceContent(postId: string, { sections, references, readingMinutes }: ContentInput) {
+  async replaceContent(postId: string, { sections, references }: ContentInput) {
     const sectionRows = sections.map((section, position) => ({
       id: randomUUID(),
       postId,
@@ -424,7 +426,7 @@ export const postsRepository = {
     await db.batch([
       db.delete(sectionSchema).where(eq(sectionSchema.postId, postId)),
       db.delete(postReferenceSchema).where(eq(postReferenceSchema.postId, postId)),
-      db.update(postSchema).set({ readingMinutes }).where(eq(postSchema.id, postId)),
+      db.update(postSchema).set({ updatedAt: new Date() }).where(eq(postSchema.id, postId)),
       ...(sectionRows.length > 0 ? [db.insert(sectionSchema).values(sectionRows)] : []),
       ...(blockRows.length > 0 ? [db.insert(blockSchema).values(blockRows)] : []),
       ...(referenceRows.length > 0 ? [db.insert(postReferenceSchema).values(referenceRows)] : []),

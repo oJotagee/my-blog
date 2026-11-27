@@ -86,6 +86,12 @@ const calloutBlock = z.object({
   label: optionalText(30),
 })
 
+const quoteBlock = z.object({
+  type: z.literal('quote'),
+  groupId,
+  content: z.string().trim().min(1).max(500),
+})
+
 const cardsBlock = z.object({
   type: z.literal('cards'),
   groupId,
@@ -106,6 +112,7 @@ const blockInput = z.discriminatedUnion('type', [
   codeBlock,
   calloutBlock,
   cardsBlock,
+  quoteBlock,
 ])
 
 const sectionInput = z.object({
@@ -154,6 +161,7 @@ export const publicListQuery = z.object({
 export const adminListQuery = z.object({
   ...pagination,
   status: z.enum(['draft', 'published']).optional(),
+  q: z.string().trim().min(1).max(100).optional(),
 })
 
 const tagResponse = z.object({ id: z.uuid(), name: z.string(), slug: z.string() })
@@ -166,7 +174,6 @@ const listItemFields = {
   publishedAt: z.date().nullable(),
   studiedFrom: z.string().nullable(),
   studiedTo: z.string().nullable(),
-  readingMinutes: z.number().int(),
   tags: z.array(tagResponse),
 }
 
@@ -191,7 +198,12 @@ export const publicListResponse = z.object({
 })
 
 export const adminListResponse = z.object({
-  items: z.array(adminListItemResponse),
+  items: z.array(adminListItemResponse.extend({ views: z.number().int() })),
+  counts: z.object({
+    all: z.number().int(),
+    published: z.number().int(),
+    draft: z.number().int(),
+  }),
   ...pageFields,
 })
 
@@ -205,7 +217,7 @@ const imageResponse = z.object({
 
 const blockResponse = z.object({
   id: z.uuid(),
-  type: z.enum(['text', 'image', 'code', 'callout', 'cards']),
+  type: z.enum(['text', 'image', 'code', 'callout', 'cards', 'quote']),
   groupId: z.number().int().nullable(),
   content: z.string().nullable(),
   caption: z.string().nullable(),

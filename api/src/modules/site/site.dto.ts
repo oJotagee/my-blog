@@ -9,6 +9,7 @@ const url = z
   .nullable()
 
 export const siteBody = z.object({
+  heroEyebrow: text(80),
   heroTitle: text(160),
   heroSubtitle: text(300),
   aboutTitle: text(80),
@@ -18,10 +19,13 @@ export const siteBody = z.object({
   city: text(80),
   githubUrl: url,
   portfolioUrl: url,
+  footerNote: text(160),
+  footerYear: z.number().int().min(2000).max(2100).nullable(),
   featuredPostId: z.uuid().nullable(),
 })
 
 export const emptySite: SiteBody = {
+  heroEyebrow: null,
   heroTitle: null,
   heroSubtitle: null,
   aboutTitle: null,
@@ -31,6 +35,8 @@ export const emptySite: SiteBody = {
   city: null,
   githubUrl: null,
   portfolioUrl: null,
+  footerNote: null,
+  footerYear: null,
   featuredPostId: null,
 }
 
@@ -44,7 +50,6 @@ const featuredPostResponse = z.object({
   publishedAt: z.date().nullable(),
   studiedFrom: z.string().nullable(),
   studiedTo: z.string().nullable(),
-  readingMinutes: z.number().int(),
   tags: z.array(tagResponse),
 })
 

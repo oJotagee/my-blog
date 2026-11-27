@@ -1,0 +1,2 @@
+ALTER TABLE "posts" DROP COLUMN "reading_minutes";--> statement-breakpoint
+ALTER TABLE "blocks" DROP CONSTRAINT "blocks_type_check", ADD CONSTRAINT "blocks_type_check" CHECK (("type" IN ('text', 'code', 'callout', 'quote') AND "content" IS NOT NULL) OR "type" = 'image' OR ("type" = 'cards' AND "meta" IS NOT NULL));

@@ -31,14 +31,17 @@ describe('analytics routes', () => {
       else views.push({ postId, date, views: 1 })
     })
 
-    spyOn(analyticsRepository, 'topPosts').mockImplementation(async (limit) =>
+    spyOn(analyticsRepository, 'topPosts').mockImplementation(async (limit, since) =>
       store.posts
         .filter((post) => post.status === 'published')
-        .map(({ id, slug, title }) => ({
+        .map(({ id, slug, title, publishedAt }) => ({
           id,
           slug,
           title,
-          views: views.filter((row) => row.postId === id).reduce((sum, row) => sum + row.views, 0),
+          publishedAt,
+          views: views
+            .filter((row) => row.postId === id && (!since || row.date >= since))
+            .reduce((sum, row) => sum + row.views, 0),
         }))
         .filter((post) => post.views > 0)
         .sort((a, b) => b.views - a.views)
@@ -107,7 +110,9 @@ describe('analytics routes', () => {
 
     const body = (await app.inject({ method: 'GET', url: '/analytics/popular?limit=1' })).json()
 
-    expect(body).toEqual([{ id: b.id, slug: 'b', title: 'b', views: 5 }])
+    expect(body).toEqual([
+      { id: b.id, slug: 'b', title: 'b', publishedAt: b.publishedAt?.toISOString(), views: 5 },
+    ])
 
     expect(
       (await app.inject({ method: 'GET', url: '/analytics/popular?limit=99' })).statusCode,
@@ -144,6 +149,6 @@ describe('analytics routes', () => {
 
     expect(body.daily[0]).toEqual({ date: isoDay(29), views: 0 })
 
-    expect(body.topPosts[0]).toMatchObject({ slug: 'um-post', views: 17 })
+    expect(body.topPosts[0]).toMatchObject({ slug: 'um-post', views: 7 })
   })
 })

@@ -38,7 +38,6 @@ export const siteService = {
         publishedAt: post.publishedAt,
         studiedFrom: post.studiedFrom,
         studiedTo: post.studiedTo,
-        readingMinutes: post.readingMinutes,
         tags: post.tags,
       },
     }
